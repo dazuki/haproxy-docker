@@ -1,0 +1,12 @@
+# Website at /webservice/. Copy to webservice.cfg (gitignored), rename, ./reload.sh.
+#
+# The backend name svc_<prefix> is the routing: svc_webservice serves /webservice/.
+
+backend svc_webservice
+    http-request redirect code 308 location /webservice/ if { path /webservice }
+    # Strip the prefix: /webservice/about arrives upstream as /about. The app must
+    # emit relative links (or know its /webservice/ base) or assets 404.
+    http-request replace-path ^/webservice(/.*)$ \1
+
+    # Container name on mcp-net; the upstream publishes no host port.
+    server app webservice:8080

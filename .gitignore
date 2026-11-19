@@ -1,0 +1,12 @@
+# Enabled service drop-ins are local
+haproxy/services/*.cfg
+
+# Allowlists are per server (internal IPs)
+haproxy/acl/*.lst
+
+# Certs and keys
+haproxy/ssl/*
+!haproxy/ssl/.gitkeep
+*.key
+*.pfx
+*.pem

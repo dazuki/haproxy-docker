@@ -1,0 +1,11 @@
+# Source IPs/subnets allowed to connect on :443. Everything else is dropped
+# before the TLS handshake. One per line, CIDR ok. Copy to allow-src.lst.
+#
+# AI platform (ai.domain.se) backend: its OUTBOUND IP, which is not necessarily what
+# ai.domain.se resolves to (load balancer, NAT, HTTP(S)_PROXY in its env).
+# Check: run `curl -s ifconfig.me` from the AI platform backend container, or read
+# the masked IP in `podman logs haproxy-proxy` after temporarily allowing it.
+192.0.2.10
+
+# Subnets whose browsers use web services here directly (office, VPN):
+198.51.100.0/24

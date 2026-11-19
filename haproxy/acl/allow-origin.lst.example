@@ -1,0 +1,7 @@
+# Allowed Origin header values (exact, scheme included, no trailing slash).
+# Requests with no Origin (server-side clients like the AI platform backend) pass;
+# any other Origin gets 403. Copy to allow-origin.lst.
+#
+# Own origin: browsers send Origin on same-site POSTs (webservice forms).
+https://mcp.domain.se
+https://ai.domain.se

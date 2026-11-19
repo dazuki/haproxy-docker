@@ -1,0 +1,3 @@
+# Host header values served (port ignored). Anything else, including requests
+# to the bare IP, is dropped. Copy to allow-host.lst.
+mcp.domain.se

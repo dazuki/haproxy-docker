@@ -1,0 +1,17 @@
+# MCP server at /mcpservice/mcp. Copy to mcpservice.cfg (gitignored), rename, ./reload.sh.
+#
+# The backend name svc_<prefix> is the routing: svc_mcpservice serves /mcpservice/.
+# The proxy only filters by source/host/origin: the MCP server must still
+# authenticate (e.g. bearer token configured in the AI platform's MCP server settings).
+
+backend svc_mcpservice
+    # Streamable HTTP is SSE: the 60s default timeout server cuts idle streams.
+    timeout server 24h
+    timeout tunnel 24h
+
+    http-request redirect code 308 location /mcpservice/ if { path /mcpservice }
+    # Strip the prefix: /mcpservice/mcp arrives upstream as /mcp.
+    http-request replace-path ^/mcpservice(/.*)$ \1
+
+    # Container name on mcp-net; the upstream publishes no host port.
+    server app mcpservice:3000

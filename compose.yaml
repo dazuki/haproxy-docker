@@ -1,0 +1,24 @@
+services:
+  haproxy:
+    image: docker.io/library/haproxy:3.4.8-alpine@sha256:0f4ac017b3a028170f9727f0f0865cfae9264519efa5b7c7d31606ce4777f8bc
+    container_name: haproxy-proxy
+    restart: unless-stopped
+    user: root
+    command: ["haproxy", "-f", "/etc/haproxy/conf.d", "-f", "/etc/haproxy/services"]
+    ports:
+      - "443:443"
+    volumes:
+      - ./haproxy:/etc/haproxy:ro,z
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - mcp-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8405/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+networks:
+  mcp-net:
+    external: true
