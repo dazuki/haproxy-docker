@@ -15,7 +15,7 @@ haproxy/ssl/*                Gitignorerad SSL mapp
 
 ## Certifikat
 
-```sh
+```bash
 { cat <leaf>.crt; echo; cat <intermediate>.crt; } > haproxy/ssl/fullchain.pem
 cp <key> haproxy/ssl/privkey.pem && chmod 600 haproxy/ssl/privkey.pem
 ./reload.sh
@@ -26,7 +26,7 @@ Saknad intermediate syns inte i webbläsare men får MCP-klienter att fallera.
 
 ## Starta HAProxy Container
 
-```sh
+```bash
 podman network create mcp-net                                              # !! Görs en gång endast !!
 for f in haproxy/acl/*.lst.example; do cp -n "$f" "${f%.example}"; done    # !! Görs en gång endast !!
 podman-compose up -d
@@ -38,7 +38,7 @@ Saknat certifikat eller saknad `.lst` stoppar start.
 
 ## Lägg Till Ny MCP Eller Webtjänst
 
-```sh
+```bash
 cp haproxy/services/mcpservice.cfg.disabled haproxy/services/nymcpservice.cfg  # Mall för ny MCP tjänst
 sed -i 's/mcpservice/nymcpservice/g' haproxy/services/nymcpservice.cfg         # Rätta till server-raden
 ./reload.sh                                                                    # Felaktig config avvisas
@@ -56,7 +56,7 @@ Redigera `haproxy/acl/*.lst`, sedan `./reload.sh`.
 
 ## Uppdatera HAProxy Image
 
-```sh
+```bash
 TAG=3.4.9-alpine
 curl -s "https://hub.docker.com/v2/repositories/library/haproxy/tags/$TAG" | jq -r .digest
 # sätt docker.io/library/haproxy:$TAG@<digest> i compose.yaml, sedan:
@@ -67,7 +67,7 @@ podman-compose up -d --force-recreate
 
 Alla `podman`-kommandon och `./reload.sh` körs som root (`sudo`). Utan root ser HAProxy inte klientens IP och källfiltret blockerar allt.
 
-```sh
+```bash
 sudo systemctl enable --now podman-restart     # Startar containrar efter omstart av servern
 sudo podman logs haproxy-proxy | tail          # Första fältet = klientens maskerade IP (t.ex. 198.51.100.0), inte 10.89.x.x
 ```
