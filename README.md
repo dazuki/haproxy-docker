@@ -1,17 +1,34 @@
-# HAProxy Docker/Podman Container
-
-Senast uppdaterad: 2026-11-19
+# HAProxy Podman Container
 
 HAProxy 3.4 LTS för `https://mcp.domain.se/<tjänst>/`.
 
 ```
-compose.yaml                 Specifik image - Nätverk `mcp-net`
-reload.sh                    haproxy -c, Omladdning utan avbrott för config filer - `haproxy -c -f conf.d -f services`
-haproxy/conf.d/00-main.cfg   Global, TLS, Frontend :443, Filter
-haproxy/acl/*.lst.example    Tillåtna Källor, Värdnamn, Origin
-haproxy/services/*.disabled  Exempel: `webservice`, `mcpservice`
-haproxy/ssl/*                Gitignorerad SSL mapp
+.
+├── compose.yaml                       # Pinnad image, nätverk mcp-net
+├── reload.sh                          # haproxy -c, sedan omladdning utan avbrott
+└── haproxy/
+    ├── conf.d/
+    │   └── 00-main.cfg                # Global, TLS, frontend :443, filter
+    ├── acl/
+    │   ├── allow-src.lst.example      # Tillåtna källor (IP/subnet)
+    │   ├── allow-host.lst.example     # Tillåtna värdnamn
+    │   └── allow-origin.lst.example   # Tillåtna Origin
+    ├── services/
+    │   ├── webservice.cfg.disabled    # Exempel: webbtjänst
+    │   └── mcpservice.cfg.disabled    # Exempel: MCP-tjänst
+    └── ssl/                           # Certifikat, gitignorerad
 ```
+
+## Komponenter
+
+| Komponent | Version | Källa |
+|-----------|---------|-------|
+| HAProxy (officiell image) | 3.4.8 LTS, pinnad med digest i `compose.yaml` | [Docker Hub](https://hub.docker.com/_/haproxy) |
+| Basimage | Alpine Linux 3.24 | [Dockerfile](https://github.com/docker-library/haproxy/blob/accae4b18c7955bedec6b1894ca040cea4ea2832/3.4/alpine/Dockerfile) |
+| TLS | OpenSSL från Alpine | Samma Dockerfile |
+| Containermotor | Podman som root, `podman-compose` | Serverns paket |
+
+Inga egna images byggs, bara konfiguration monteras skrivskyddat.
 
 ## Certifikat
 
@@ -29,6 +46,7 @@ Saknad intermediate syns inte i webbläsare men får MCP-klienter att fallera.
 ```bash
 podman network create mcp-net                                              # !! Görs en gång endast !!
 for f in haproxy/acl/*.lst.example; do cp -n "$f" "${f%.example}"; done    # !! Görs en gång endast !!
+
 podman-compose up -d
 podman exec haproxy-proxy wget -qO- http://127.0.0.1:8405/healthz          # Se hälsa på container
 podman logs -f haproxy-proxy                                               # Loggar
@@ -36,7 +54,7 @@ podman logs -f haproxy-proxy                                               # Log
 
 Saknat certifikat eller saknad `.lst` stoppar start.
 
-## Lägg Till Ny MCP Eller Webtjänst
+## Ny MCP Eller Webtjänst
 
 ```bash
 cp haproxy/services/mcpservice.cfg.disabled haproxy/services/nymcpservice.cfg  # Mall för ny MCP tjänst
@@ -64,8 +82,6 @@ podman-compose up -d --force-recreate
 ```
 
 ## Drift På Servern
-
-Alla `podman`-kommandon och `./reload.sh` körs som root (`sudo`). Utan root ser HAProxy inte klientens IP och källfiltret blockerar allt.
 
 ```bash
 sudo systemctl enable --now podman-restart     # Startar containrar efter omstart av servern
